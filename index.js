@@ -14,7 +14,9 @@ app.get('/insert/:keys/:data', (req, res, next) => {
     let frontend_data = `localStorage.setItem('${keys}', JSON.stringify(${data}))`
     fs.writeFile('./datafiles/sg.js', frontend_data, function (err) {
         if (err) throw err;
-        console.log('Saved!');
+        else {res.send('Saved!');
+    res.end()
+    }
     });
 })
 
