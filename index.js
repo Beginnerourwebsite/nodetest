@@ -1,24 +1,41 @@
 const express = require('express');
 const app = express();
-const fs = require('fs');
-const path = require('path');
-
-app.use(express.static(path.join(__dirname, "./datafiles")))
-// require("path")
+let path = require("path")
+let multer = require("multer")
+app.use(express.urlencoded({ extended: false }))
 app.set('port', process.env.PORT || 3000)
-
-app.get('/insert/:keys/:data', (req, res, next) => {
-    let keys = req.params.keys
-    let data = req.params.data
-    
-    let frontend_data = `localStorage.setItem('${keys}', JSON.stringify(${data}))`
-    fs.writeFile('./datafiles/sg.js', frontend_data, function (err) {
-        if (err) throw err;
-        else {res.send('Saved!');
-    res.end()
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './datafiles')
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, new Date().getDate() + "-" +
+            (new Date().getMonth() + 1) + "-" +
+            new Date().getMilliseconds() + "-" +file.originalname)
     }
-    });
 })
+const upload = multer({ storage: storage })
+
+let mainfolderpath = path.join(__dirname, "./datafiles")
+app.use(express.static(mainfolderpath))
+
+
+
+app.post('/data', upload.single("user"), (req, res, next) => {
+  let obj={
+    Download_link:`http://localhost:3000/${req.file.filename}`
+  }
+  
+    res.send(obj)
+    res.end()
+
+})
+app.get('/get', (req, res, next)=>{
+    res.attachment(mainfolderpath+"/index.html")
+    res.end()
+})
+// console.log(mainfolderpath)
 
 app.listen(app.get('port'), () => {
     console.info(`Server listen on port ${app.get('port')}`);
